@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 
+
 DB_NAME = 'timer_data.db'
 
 def initialize_db():

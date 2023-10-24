@@ -3,17 +3,19 @@ import datetime
 from db_utils import fetch_from_db
 
 
-class CalendarHistory(tk.Toplevel):
+class HistoryFrame(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title("Elapsed Time History")
-    
+
         # Get the current month and year
         current_month = datetime.datetime.now().month
         current_year = datetime.datetime.now().year
 
         # Draw calendar
         self.draw_calendar(current_year, current_month)
+        
+        self.back_button = tk.Button(self, text="Back", command=parent.show_timer_view)
+        self.back_button.grid(row=0, column=0, pady=10)
 
     def draw_calendar(self, year, month):
         # Use Python's calendar module to get the month's day matrix
@@ -35,6 +37,8 @@ class CalendarHistory(tk.Toplevel):
             self.grid_columnconfigure(i, weight=1)
         for i in range(len(cal)):
             self.grid_rowconfigure(i, weight=1)
+        
+       
 
     def display_elapsed_time(self, event, date):
         # Fetch elapsed time from database for the given date

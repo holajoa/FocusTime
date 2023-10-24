@@ -2,8 +2,9 @@ import tkinter as tk
 import time
 import datetime
 import threading
-from db_utils import save_to_db
-from calendar_history import CalendarHistory
+from frames.history import HistoryFrame
+from frames.settings import SettingsFrame
+from app_settings import load_settings
 
 
 class TimerApp(tk.Tk):
@@ -11,20 +12,44 @@ class TimerApp(tk.Tk):
         super().__init__()
 
         self.title("Daily Timer")
-        self.geometry("300x150")
+        self.geometry("400x300")
 
-        # Timer label
-        self.timer_string = tk.StringVar(self, "00:00:00")
-        self.timer_label = tk.Label(self, textvar=self.timer_string, font=("Arial", 24))
-        self.timer_label.pack(pady=20)
-
-        # Play/Pause button (combined start and pause/resume)
-        self.play_pause_button = tk.Button(self, text="▶", command=self.toggle_timer)
-        self.play_pause_button.pack(side=tk.LEFT, padx=10)
+        # Add menu bar
+        self.menu_bar = tk.Menu(self)
+        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.file_menu.add_command(label="Show History", command=self.show_history_view)
+        self.file_menu.add_command(label="Settings", command=self.show_settings_view)
+        self.menu_bar.add_cascade(label="Menu", menu=self.file_menu)
+        self.config(menu=self.menu_bar)
         
-        # Add "Show History" button
-        self.history_button = tk.Button(self, text="Show History", command=self.show_history)
-        self.history_button.pack(pady=10)
+        # Initialize settings
+        self.app_settings = load_settings()
+
+        # Timer Frame
+        self.timer_frame = tk.Frame(self)
+        self.timer_frame.grid(row=0, column=0, sticky="nsew")
+        self.timer_string = tk.StringVar(self, "00:00:00")
+        
+        self.timer_label = tk.Label(self.timer_frame, textvar=self.timer_string, 
+                                    font=(self.app_settings.font_name, self.app_settings.font_size))
+        self.timer_label.grid(row=0, column=0, pady=20)
+        
+        self.play_pause_button = tk.Button(self.timer_frame, text="▶️", command=self.toggle_timer)
+        self.play_pause_button.grid(row=1, column=0, pady=(40, 0))
+
+        # History Frame
+        self.history_frame = HistoryFrame(self)
+        
+        # Settings Frame
+        self.settings_frame = SettingsFrame(self, self.apply_settings)
+        
+        # Configure the rows and columns
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.timer_frame.grid_rowconfigure(1, weight=1)
+        self.timer_frame.grid_columnconfigure(0, weight=1)
+        self.history_frame.grid_rowconfigure(1, weight=1)
+        self.history_frame.grid_columnconfigure(0, weight=1)
 
         # Initialize
         self.running = False
@@ -34,6 +59,26 @@ class TimerApp(tk.Tk):
         self.daily_reset_thread = threading.Thread(target=self.check_daily_reset)
         self.daily_reset_thread.daemon = True  # Allow the app to exit even if thread is running
         self.daily_reset_thread.start()
+        
+    def apply_settings(self):
+        font_name = self.app_settings.font_name
+        font_size = int(self.app_settings.font_size)
+        self.timer_label.config(font=(font_name, font_size))
+
+    def show_settings_view(self):
+        self.timer_frame.grid_remove()  # Hide the timer frame
+        self.history_frame.grid_remove()  # Hide the history frame, if it's visible
+        self.settings_frame.grid(row=0, column=0, sticky="nsew")  # Show the settings frame
+
+    def show_history_view(self):
+        self.timer_frame.grid_remove()
+        self.settings_frame.grid_remove()  # Hide the settings frame
+        self.history_frame.grid(row=0, column=0, sticky="nsew")
+
+    def show_timer_view(self):
+        self.history_frame.grid_remove()
+        self.settings_frame.grid_remove()  # Hide the settings frame
+        self.timer_frame.grid(row=0, column=0, sticky="nsew")
 
     def update_timer(self):
         if self.running:
@@ -54,7 +99,7 @@ class TimerApp(tk.Tk):
             self.play_pause_button.config(text="▶")
 
     def show_history(self):
-        CalendarHistory(self)
+        HistoryFrame(self)
         
     def reset_timer(self):
         self.timer_string.set("00:00:00")
