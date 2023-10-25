@@ -1,4 +1,5 @@
 import pickle
+from config import SETTINGS_DIR
 
 
 class AppSettings:
@@ -8,12 +9,12 @@ class AppSettings:
 
 
 def save_settings(settings):
-    with open("settings.pkl", "wb") as f:
+    with open(SETTINGS_DIR, "wb") as f:
         pickle.dump(settings, f)
 
 def load_settings():
     try:
-        with open("settings.pkl", "rb") as f:
+        with open(SETTINGS_DIR, "rb") as f:
             return pickle.load(f)
     except (FileNotFoundError, EOFError, pickle.PickleError):
         # If settings file doesn't exist or there's an error reading it, return default settings

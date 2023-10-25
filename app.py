@@ -1,15 +1,20 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu, QLabel, QVBoxLayout, QPushButton, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu, QLabel, QVBoxLayout, QPushButton, QWidget, QMessageBox
 from PyQt5.QtCore import QTimer, pyqtSlot
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-import time
-import threading
+
 from views.history import HistoryFrame
 from views.settings import SettingsFrame
 from app_settings import load_settings
-from db_utils import save_to_db, fetch_from_db
+from db_utils import save_to_db
+
+from config import TIMER_STATE
+
 import datetime
+import time
+import threading
+import json
 
 
 class TimerApp(QMainWindow):
@@ -22,6 +27,7 @@ class TimerApp(QMainWindow):
         
         # Initialize settings
         self.app_settings = load_settings()
+        self.timer_state_file = TIMER_STATE
 
         # Menu bar setup
         menubar = self.menuBar()
@@ -69,6 +75,11 @@ class TimerApp(QMainWindow):
         # Initialize
         self.running = False
         self.start_time = None
+        self.elapsed_seconds = 0
+        
+        # Load timer state from file
+        self.load_timer_state()
+        self.update_timer_display(force_update=True)
 
         # Start the daily reset checker
         self.daily_reset_thread = threading.Thread(target=self.check_daily_reset)
@@ -103,10 +114,10 @@ class TimerApp(QMainWindow):
 
     @pyqtSlot()
     def toggle_timer(self):
+        self.elapsed_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(self.timer_label.text().split(":"))))  # Convert displayed time to seconds
         if not self.running:
             # Starting the timer
             self.start_time = time.time()
-            self.elapsed_seconds = sum(int(x) * 60 ** i for i, x in enumerate(reversed(self.timer_label.text().split(":"))))  # Convert displayed time to seconds
             self.running = True
             self.play_pause_button.setText("⏸")
             self.timer_instance.start(1000)  # Trigger every 1 second
@@ -116,12 +127,16 @@ class TimerApp(QMainWindow):
             self.play_pause_button.setText("▶")
             self.timer_instance.stop()
 
-    def update_timer_display(self):
+    def update_timer_display(self, force_update=False):
         if self.running:
             elapsed_time = time.time() - self.start_time + self.elapsed_seconds
-            hours, remainder = divmod(elapsed_time, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            self.timer_label.setText("{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds)))
+        elif force_update:
+            elapsed_time = self.elapsed_seconds
+        else: 
+            return 
+        hours, remainder = divmod(elapsed_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.timer_label.setText("{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds)))
 
     def show_history(self):
         HistoryFrame(self)
@@ -133,21 +148,52 @@ class TimerApp(QMainWindow):
         """Perform the daily save and reset operations."""
         self.save_to_db()
         self.reset_timer()
+        self.check_daily_reset()  # Check again at midnight
 
     def check_daily_reset(self):
-        while True:
-            now = datetime.datetime.now()
-            # Check if it's close to midnight (within 2 seconds buffer to ensure we catch it)
-            if now.hour == 23 and now.minute == 59 and now.second >= 58:
-                self.perform_daily_reset()
-                time.sleep(2)  # Sleep for a couple of seconds to pass midnight
-            time.sleep(10)  # Check every 10 seconds
+        now = datetime.datetime.now()
+        # Calculate the time remaining until midnight
+        midnight = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
+        delta_t = midnight - now
+        seconds_to_midnight = delta_t.total_seconds()
+        
+        # Set a timer to call the reset function at midnight
+        threading.Timer(seconds_to_midnight, self.perform_daily_reset).start()
 
     def save_to_db(self):
         elapsed_time = self.timer_label.text()
         today = datetime.date.today().strftime('%Y-%m-%d')
         save_to_db(today, elapsed_time)
-        
+    
+    def save_timer_state(self):
+        data = {
+            'running': self.running,
+            'elapsed_seconds': self.elapsed_seconds if not self.running else 0
+        }
+        with open(self.timer_state_file, 'w') as file:
+            json.dump(data, file)
+            
+    def load_timer_state(self):
+        try:
+            with open(self.timer_state_file, 'r') as file:
+                data = json.load(file)
+                self.running = data.get('running', False) 
+                self.elapsed_seconds = data.get('elapsed_seconds', 0)
+        except FileNotFoundError:
+            pass
+    
+    def closeEvent(self, event):
+        if self.running:
+            reply = QMessageBox.question(self, 'Exit Confirmation', 'Are you sure you want to exit?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.toggle_timer()  # Pause the timer
+                self.save_timer_state()
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            self.save_timer_state()
+            event.accept()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -1,6 +1,7 @@
-## Saved setting
-settings.pkl
-
+## Saved setting, database, app state, etc
+/resources/states/*
+/resources/database/*
+/resources/settings.pkl
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/*
