@@ -12,8 +12,7 @@ def initialize_db():
     conn.commit()
     conn.close()
 
-def save_to_db(elapsed_time):
-    today = datetime.date.today().strftime('%Y-%m-%d')
+def save_to_db(today, elapsed_time):
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('INSERT OR REPLACE INTO daily_times (date, elapsed_time) VALUES (?, ?)', (today, elapsed_time))
@@ -27,6 +26,3 @@ def fetch_from_db(date):
     elapsed_time = cursor.fetchone()
     conn.close()
     return elapsed_time
-
-# Call this only once when the application starts
-initialize_db()
