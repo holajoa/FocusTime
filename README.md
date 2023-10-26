@@ -1,6 +1,6 @@
 # Daily Work Time Tracker
 
-A simple application to monitor and visualise your daily work hours.
+A simple desktop application to monitor and visualise your daily work hours.
 
 ## Who Is This For?
 
