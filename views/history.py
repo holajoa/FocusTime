@@ -2,6 +2,7 @@ import datetime
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QGridLayout, QToolTip
 from PyQt5.QtGui import QMouseEvent
 from db_utils import fetch_from_db
+from components import BackButton
 
 
 class DateLabel(QLabel):
@@ -37,8 +38,7 @@ class HistoryFrame(QWidget):
         current_year = datetime.datetime.now().year
         self.draw_history(current_year, current_month, layout)
         
-        self.back_button = QPushButton("Back", self)
-        self.back_button.clicked.connect(self.parent.show_timer_view)
+        self.back_button = BackButton(self)
         layout.addWidget(self.back_button, 0, 0)
         
         self.setLayout(layout)

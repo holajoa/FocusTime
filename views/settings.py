@@ -1,5 +1,6 @@
 from typing import Callable 
 from app_settings import save_settings, load_settings
+from components import BackButton
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QGridLayout, QComboBox, QSlider
 from PyQt5.QtCore import Qt
 
@@ -11,8 +12,7 @@ class SettingsFrame(QWidget):
         self.parent = parent
         layout = QGridLayout(self)
         
-        self.back_button = QPushButton("Back", self)
-        self.back_button.clicked.connect(self.parent.show_timer_view)
+        self.back_button = BackButton(self)
         layout.addWidget(self.back_button, 0, 0, 1, 2)
 
         default_settings = load_settings()

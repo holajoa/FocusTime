@@ -1,8 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMenu, QLabel, QVBoxLayout, QPushButton, QWidget, QMessageBox
-from PyQt5.QtCore import QTimer, pyqtSlot
+from PyQt5.QtCore import QTimer, pyqtSlot, QSize
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QIcon
 
 from views.history import HistoryFrame
 from views.settings import SettingsFrame
@@ -54,9 +54,26 @@ class TimerApp(QMainWindow):
         self.apply_settings()    # Apply font settings to timer label
         layout.addWidget(self.timer_label)
         
-        self.play_pause_button = QPushButton("▶", self, )
-        layout.addWidget(self.play_pause_button)
+        self.play_pause_button = QPushButton("", self, )
+        self.play_pause_button.setIcon(QIcon("static/play_icon.png"))
+        self.play_pause_button.setIconSize(QSize(25, 25))  
+        layout.addWidget(self.play_pause_button, alignment=Qt.AlignCenter)
         self.play_pause_button.clicked.connect(self.toggle_timer)
+        self.play_pause_button.setFixedSize(50, 50)
+        self.play_pause_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                border-radius: 25px;  
+                color: white;
+                font-size: 35px;  
+            }
+            QPushButton:hover {
+                background-color: #1E88E5; /* Slightly darker shade for hover effect */
+            }
+            QPushButton:pressed {
+                background-color: #1976D2; /* Even darker shade for pressed effect */
+            }
+        """)
         
         self.timer_widget.setLayout(layout)
         self.central_widget.addWidget(self.timer_widget)  # Add to stacked widget
@@ -80,11 +97,16 @@ class TimerApp(QMainWindow):
         # Load timer state from file
         self.load_timer_state()
         self.update_timer_display(force_update=True)
-
+        
         # Start the daily reset checker
         self.daily_reset_thread = threading.Thread(target=self.check_daily_reset)
         self.daily_reset_thread.daemon = True  # Allow the app to exit even if thread is running
         self.daily_reset_thread.start()
+        
+        days_passed = (datetime.date.today() - self.last_used_date).days
+        if days_passed >= 1:
+            self.save_to_db(date=self.last_used_date)  # Save elapsed time to the last day the app was used
+            self.reset_timer()  # Reset the timer
         
     def apply_settings(self):
         font_name = self.app_settings.font_name
@@ -119,12 +141,12 @@ class TimerApp(QMainWindow):
             # Starting the timer
             self.start_time = time.time()
             self.running = True
-            self.play_pause_button.setText("⏸")
+            self.play_pause_button.setIcon(QIcon("static/pause_icon.png"))
             self.timer_instance.start(1000)  # Trigger every 1 second
         else:
             # Pausing the timer
             self.running = False
-            self.play_pause_button.setText("▶")
+            self.play_pause_button.setIcon(QIcon("static/play_icon.png"))
             self.timer_instance.stop()
 
     def update_timer_display(self, force_update=False):
@@ -142,7 +164,7 @@ class TimerApp(QMainWindow):
         HistoryFrame(self)
         
     def reset_timer(self):
-        self.timer_string = "00:00:00"
+        self.timer_label.setText("00:00:00")
     
     def perform_daily_reset(self):
         """Perform the daily save and reset operations."""
@@ -160,15 +182,17 @@ class TimerApp(QMainWindow):
         # Set a timer to call the reset function at midnight
         threading.Timer(seconds_to_midnight, self.perform_daily_reset).start()
 
-    def save_to_db(self):
+    def save_to_db(self, date=None):
         elapsed_time = self.timer_label.text()
-        today = datetime.date.today().strftime('%Y-%m-%d')
-        save_to_db(today, elapsed_time)
+        if not date:
+            date = datetime.date.today().strftime('%Y-%m-%d')
+        save_to_db(date, elapsed_time)
     
     def save_timer_state(self):
         data = {
             'running': self.running,
-            'elapsed_seconds': self.elapsed_seconds if not self.running else 0
+            'elapsed_seconds': self.elapsed_seconds if not self.running else 0, 
+            'last_used_date': datetime.date.today().strftime('%Y-%m-%d'), 
         }
         with open(self.timer_state_file, 'w') as file:
             json.dump(data, file)
@@ -179,8 +203,10 @@ class TimerApp(QMainWindow):
                 data = json.load(file)
                 self.running = data.get('running', False) 
                 self.elapsed_seconds = data.get('elapsed_seconds', 0)
+                # print(data.get('last_used_date', '1900-01-01'))
+                self.last_used_date = datetime.datetime.strptime(data.get('last_used_date', '1900-01-01'), '%Y-%m-%d').date()
         except FileNotFoundError:
-            pass
+            self.last_used_date = datetime.date.today()
     
     def closeEvent(self, event):
         if self.running:
@@ -196,7 +222,10 @@ class TimerApp(QMainWindow):
             event.accept()
 
 if __name__ == "__main__":
+    from stylesheet import STYLESHEET
     app = QApplication(sys.argv)
+    # Then apply the stylesheet to your app
+    app.setStyleSheet(STYLESHEET)
     window = TimerApp()
     window.show()
     sys.exit(app.exec_())
