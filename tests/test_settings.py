@@ -7,7 +7,7 @@ app = QApplication([])
 
 def test_settings_view():
     """
-    Test that the settings view is displayed when the menu item is clicked, 
+    Test that the settings view is displayed when the menu item is clicked,
     and that font and size settings can be changed and applied.
     """
     window = TimerApp()
@@ -19,13 +19,13 @@ def test_settings_view():
 
     # Change font and size
     original_font = window.timer_label.font()
-    window.settings_frame.font_dropdown.setCurrentText("Times New Roman")
+    window.settings_frame.font_dropdown.setCurrentText("Roboto Mono")
     window.settings_frame.font_size_scale.setValue(30)
 
     # Apply and verify changes
     window.settings_frame.apply_and_callback()
     new_font = window.timer_label.font()
-    assert new_font.family() == "Times New Roman"
+    assert new_font.family() == "Roboto Mono"
     assert new_font.pointSize() == 30
 
     # Save and close
@@ -40,8 +40,7 @@ def test_load_default_settings():
 
     # Assumes the previous test has run and set the defaults
     font = window.timer_label.font()
-    assert font.family() == "Times New Roman"
+    assert font.family() == "Roboto Mono"
     assert font.pointSize() == 30
 
     window.close()
-    

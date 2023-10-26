@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 def app():
     return QApplication([])
 
+
 def test_start_pause_timer():
     window = TimerApp()
     window.show()
@@ -32,7 +33,7 @@ def test_start_pause_timer():
 def test_save_and_load_timer_state_paused(app, tmp_path):
     # Use tmp_path to create a temporary file for saving timer state
     file = tmp_path / "timer_state.json"
-    
+
     window = TimerApp()
     window.running = False
     window.elapsed_seconds = 1500  # assume 25 minutes have passed
@@ -76,7 +77,7 @@ def test_handle_exit_while_timer_running_no(app, tmp_path):
         window.closeEvent(mock_close_event)
 
     mock_close_event.ignore.assert_called_once()  # Ensure the ignore method was called
-    
+
     # File shouldn't exist as the state should not be saved if the user chooses not to exit
     assert not file.exists()
 
@@ -93,10 +94,10 @@ def test_handle_exit_while_timer_running_yes(app, tmp_path):
     # Mocking the QMessageBox to return 'Yes'
     with patch("PyQt5.QtWidgets.QMessageBox.question", return_value=QMessageBox.Yes):
         window.closeEvent(mock_close_event)
-    
+
     mock_close_event.accept.assert_called_once()  # Ensure the accept method was called
-    
-    with open(file, 'r') as f:
+
+    with open(file, "r") as f:
         data = json.load(f)
-    
+
     assert data["elapsed_seconds"] == 12345

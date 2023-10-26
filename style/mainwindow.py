@@ -57,7 +57,20 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #1976D2; /* Even darker shade for pressed effect */
     font-family: 'Arial', sans-serif; 
-    font-weight: bold;
 }
 """
 
+PLAY_PAUSE_BUTTON_STYLESHEET = """
+    QPushButton {
+        background-color: #2196F3;
+        border-radius: 25px;  
+        color: white;
+        font-size: 35px;  
+    }
+    QPushButton:hover {
+        background-color: #1E88E5; /* Slightly darker shade for hover effect */
+    }
+    QPushButton:pressed {
+        background-color: #1976D2; /* Even darker shade for pressed effect */
+    }
+"""

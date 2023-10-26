@@ -5,12 +5,13 @@ from config import SETTINGS_DIR
 class AppSettings:
     def __init__(self):
         self.font_name = "Arial"  # default font
-        self.font_size = 24       # default size
+        self.font_size = 24  # default size
 
 
 def save_settings(settings):
     with open(SETTINGS_DIR, "wb") as f:
         pickle.dump(settings, f)
+
 
 def load_settings():
     try:
