@@ -1,12 +1,14 @@
 import pytest
+from unittest.mock import patch
+from unittest.mock import MagicMock
+
 from app import TimerApp
+
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QApplication, QMessageBox
 from PyQt5.QtCore import Qt
 
 import json
-from unittest.mock import patch
-from unittest.mock import MagicMock
 
 
 # Ensure that the app is created only once

@@ -43,20 +43,14 @@ QPushButton {
     border-radius: 25px; /* half of width/height to create a circle */
     width: 30px; /* fixed width */
     height: 30px; /* fixed height */
-    font-size: 16px;
-    font-family: 'Arial', sans-serif;
-    font-weight: bold; 
 }
 
 QPushButton:hover {
     background-color: #1E88E5; /* Slightly darker shade for hover effect */
-    font-family: 'Arial', sans-serif; 
-    font-weight: bold;
 }
 
 QPushButton:pressed {
     background-color: #1976D2; /* Even darker shade for pressed effect */
-    font-family: 'Arial', sans-serif; 
 }
 """
 

@@ -1,7 +1,7 @@
 ## Saved setting, database, app state, etc
 /resources/states/*
 /resources/database/*
-/resources/settings.pkl
+/resources/font_settings.json
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/*

@@ -2,11 +2,12 @@ import datetime
 from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QToolTip, QComboBox, QFrame
 from PyQt5.QtGui import QMouseEvent, QColor, QPainter
 from PyQt5.QtCore import Qt
-from db_utils import fetch_from_db
+
+from utils.db_utils import fetch_from_db
 from components.buttons import BackButton
 
 
-def calculate_color(elapsed_time_str, min_val=0, max_val=24, repr=True):
+def calculate_color(elapsed_time_str, min_val=0, max_val=10, repr=True):
     """Calculate the color based on the elapsed time string."""
     if elapsed_time_str == "No data":
         if repr:
@@ -19,7 +20,7 @@ def calculate_color(elapsed_time_str, min_val=0, max_val=24, repr=True):
     r, g, b = green_intensity, 255 - int(green_intensity * 3 / 4), green_intensity
     if repr:
         return f"rgb({r}, {g}, {b})"
-    return QColor(r, g, b, int(255*0.8))
+    return QColor(r, g, b, int(255 * 0.8))
 
 
 class DateLabel(QLabel):
@@ -29,14 +30,14 @@ class DateLabel(QLabel):
         self.parent_widget = parent
         self.setObjectName(f"DateLabel({self.date})")
         self.setAlignment(Qt.AlignCenter)
-        
+
         elapsed_time = fetch_from_db(self.date)
         if elapsed_time:
             self.elapsed_time_str = elapsed_time[0]
         else:
             self.elapsed_time_str = "No data"
         self.color = calculate_color(self.elapsed_time_str, repr=False)
-        
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing, True)  # For smoother edges
@@ -44,7 +45,9 @@ class DateLabel(QLabel):
         # Draw the circle
         painter.setPen(Qt.NoPen)
         painter.setBrush(self.color)
-        r = min(self.width(), self.height()) // 8  # radius; adjust the division factor to change circle size
+        r = (
+            min(self.width(), self.height()) // 8
+        )  # radius; adjust the division factor to change circle size
         center_x = self.width() // 2
         center_y = self.height() // 2
         painter.drawEllipse(center_x, center_y, 2 * r, 2 * r)
@@ -58,7 +61,7 @@ class DateLabel(QLabel):
         text_width = font_metrics.width(self.text())
         text_height = font_metrics.height()
         painter.drawText(8, 16, self.text())
-        
+
         painter.end()
 
     def enterEvent(self, event: QMouseEvent):
@@ -76,14 +79,29 @@ class HistoryFrame(QWidget):
 
         self.parent = parent
         layout = QGridLayout(self)
+        self.setMinimumHeight(400)
 
         # Dropdown for selecting month
         self.month_selector = QComboBox(self)
-        months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December']
+        months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+        ]
         self.month_selector.addItems(months)
         current_month = datetime.datetime.now().month
-        self.month_selector.setCurrentIndex(current_month - 1)  # -1 because list index starts at 0
+        self.month_selector.setCurrentIndex(
+            current_month - 1
+        )  # -1 because list index starts at 0
         self.month_selector.currentIndexChanged.connect(self.update_calendar_view)
         layout.addWidget(self.month_selector, 0, 1)
 
@@ -95,7 +113,6 @@ class HistoryFrame(QWidget):
 
         self.setLayout(layout)
         self.setStyleSheet("border: 1px solid lightgray;")
-
 
     def draw_history(self, year, month, layout):
         import calendar
@@ -112,21 +129,14 @@ class HistoryFrame(QWidget):
                 if day != 0:
                     date_str = f"{year}-{month:02}-{day:02}"
                     day_label = DateLabel(str(day), self, date_str)
-                    
+
                     # Equal space for dates
                     day_label.setFixedSize(50, 50)
-                        
+
                     layout.addWidget(day_label, week_index + 1, day_index)
 
     def update_calendar_view(self, month_index):
         year = datetime.datetime.now().year
-        self.draw_history(year, month_index + 1, self.layout())  # +1 because list index starts at 0
-        
-    # def add_grid_line(self, layout, row, col, orientation="horizontal"):
-    #     line = QFrame(self)
-    #     if orientation == "horizontal":
-    #         line.setFrameShape(QFrame.HLine)
-    #     else:
-    #         line.setFrameShape(QFrame.VLine)
-    #     line.setFrameShadow(QFrame.Sunken)
-    #     layout.addWidget(line, row, col)
+        self.draw_history(
+            year, month_index + 1, self.layout()
+        )  # +1 because list index starts at 0

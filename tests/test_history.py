@@ -1,13 +1,15 @@
 """Test the history view and the history functionality."""
 import pytest
+
 from app import TimerApp
 from views.history import DateLabel
-from PyQt5.QtWidgets import QApplication
+from utils.db_utils import fetch_from_db
+
+from PyQt5.QtWidgets import QApplication, QToolTip
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import QPoint
-from PyQt5.QtWidgets import QToolTip
+
 import datetime
-from db_utils import fetch_from_db
 
 app = QApplication([])
 

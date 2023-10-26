@@ -1,4 +1,5 @@
 import sys
+
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -9,15 +10,15 @@ from PyQt5.QtWidgets import (
     QWidget,
     QMessageBox,
 )
-from PyQt5.QtCore import QTimer, pyqtSlot
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QFont
 
 from views.history import HistoryFrame
 from views.settings import SettingsFrame
 from components.buttons import PlayPauseButton
-from app_settings import load_settings
-from db_utils import save_to_db
+from utils.app_settings import load_settings
+from utils.db_utils import save_to_db
 
 from config import TIMER_STATE
 from style.mainwindow import STYLESHEET
@@ -35,6 +36,7 @@ class TimerApp(QMainWindow):
         # Basic window settings
         self.setWindowTitle("Daily Timer")
         self.setGeometry(100, 100, 500, 300)
+        self.setMinimumHeight(200)
 
         # Initialize settings
         self.app_settings = load_settings()
@@ -114,15 +116,18 @@ class TimerApp(QMainWindow):
     @pyqtSlot()
     def show_settings_view(self):
         self.central_widget.setCurrentWidget(self.settings_frame)
+        self.adjustSize()
 
     @pyqtSlot()
     def show_history_view(self):
         self.central_widget.setCurrentWidget(self.history_frame)
+        self.adjustSize()
 
     @pyqtSlot()
     def show_timer_view(self):
         self.central_widget.setCurrentWidget(self.timer_widget)
-        
+        self.adjustSize()
+
     @pyqtSlot()
     def toggle_timer(self):
         self.elapsed_seconds = sum(

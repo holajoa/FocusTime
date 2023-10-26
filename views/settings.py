@@ -1,15 +1,15 @@
-from app_settings import save_settings, load_settings
-from components.buttons import BackButton
-from components.sliders import LabeledSlider
 from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
     QPushButton,
     QGridLayout,
     QComboBox,
-    QSlider,
 )
 from PyQt5.QtCore import Qt
+
+from utils.app_settings import save_settings, load_settings
+from components.buttons import BackButton
+from components.sliders import LabeledSlider
 from config import TIMER_FONT_CHOICES
 
 
