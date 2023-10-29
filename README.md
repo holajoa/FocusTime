@@ -12,6 +12,6 @@ Designed for individuals who want a straightforward way to track their total wor
 - **Font and Size Adjustments**
 
 ### Next Steps
-- [ ] Refactor: Timer view separate from main `app.py`.
+- [x] Refactor: Timer view separate from main `app.py`.
 - [ ] Fix settings view UI.
   

@@ -1,5 +1,5 @@
 import datetime
-from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QToolTip, QComboBox, QFrame
+from PyQt5.QtWidgets import QWidget, QLabel, QGridLayout, QToolTip, QComboBox
 from PyQt5.QtGui import QMouseEvent, QColor, QPainter
 from PyQt5.QtCore import Qt
 
@@ -73,7 +73,7 @@ class DateLabel(QLabel):
         QToolTip.hideText()
 
 
-class HistoryFrame(QWidget):
+class HistoryView(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
 

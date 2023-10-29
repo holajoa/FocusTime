@@ -25,12 +25,12 @@ def test_save_elapsed_time_at_midnight(mocker):
     elapsed_seconds = 3600  # 1 hour
     hours, remainder = divmod(elapsed_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    window.timer_label.setText(
+    window.timer_view.timer_label.setText(
         "{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds))
     )
 
     # Trigger the function that should save the time at midnight
-    window.perform_daily_reset()
+    window.timer_view.perform_daily_reset()
 
     # Fetch data for today
     today = datetime.date.today().strftime("%Y-%m-%d")
@@ -47,7 +47,7 @@ def test_history_view_and_calendar():
 
     # Open history view
     window.show_history_view()
-    assert window.history_frame.isVisible()
+    assert window.history_view.isVisible()
 
     # Simulate hovering over a date label
     test_day = 5
@@ -55,7 +55,7 @@ def test_history_view_and_calendar():
     test_date = datetime.date(current_date.year, current_date.month, test_day).strftime(
         "%Y-%m-%d"
     )
-    date_label = window.history_frame.findChild(DateLabel, f"DateLabel({test_date})")
+    date_label = window.history_view.findChild(DateLabel, f"DateLabel({test_date})")
     assert date_label is not None
 
     # Move the mouse cursor to the center of the date label

@@ -11,9 +11,10 @@ from utils.app_settings import save_settings, load_settings
 from components.buttons import BackButton
 from components.sliders import LabeledSlider
 from config import TIMER_FONT_CHOICES
+from utils.app_settings import AppSettings
 
 
-class SettingsFrame(QWidget):
+class SettingsView(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -50,11 +51,15 @@ class SettingsFrame(QWidget):
         self.setLayout(layout)
 
     def apply_and_callback(self):
-        self.parent.app_settings.font_name = self.font_dropdown.currentText()
-        self.parent.app_settings.font_size = self.font_size_scale.value()
+        self.parent.app_settings = AppSettings(
+            font_name=self.font_dropdown.currentText(), 
+            font_size=self.font_size_scale.value()
+        )
         self.parent.apply_settings()
 
     def save_as_default(self):
-        self.parent.app_settings.font_name = self.font_dropdown.currentText()
-        self.parent.app_settings.font_size = self.font_size_scale.value()
+        self.parent.app_settings = AppSettings(
+            font_name=self.font_dropdown.currentText(), 
+            font_size=self.font_size_scale.value()
+        )
         save_settings(self.parent.app_settings)
