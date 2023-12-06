@@ -13,11 +13,29 @@ from views.history import HistoryView
 from views.settings import SettingsView
 from views.timer import TimerView
 from style.mainwindow import STYLESHEET
+from config import LOG_DIR, CFG
 
+from utils.db_utils import initialize_db
+import logging
+
+
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    filename=LOG_DIR + 'app.log', 
+                    filemode='a+')
+        
+        
 class TimerApp(QMainWindow):
-    def __init__(self):
+    def __init__(self, config=CFG):
         super().__init__()
-
+        self.config = config
+        self.init_db(**config)
+        self.initUI()
+        
+    def init_db(self, **config):
+        initialize_db(**config)
+        
+    def initUI(self):
         # Basic window settings
         self.setWindowTitle("Daily Timer")
         self.setGeometry(100, 100, 500, 300)
@@ -49,7 +67,7 @@ class TimerApp(QMainWindow):
         self.settings_view = SettingsView(self)
         self.central_widget.addWidget(self.settings_view)
         
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WA_DeleteOnClose)    
     
     @property
     def app_settings(self):

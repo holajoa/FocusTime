@@ -1,6 +1,7 @@
 import json
 
 from config import FONT_SETTINGS_DIR
+from utils.db_utils import TIME_DATABASE
 
 
 class AppSettings:

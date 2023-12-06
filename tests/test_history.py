@@ -3,40 +3,36 @@ import pytest
 
 from app import TimerApp
 from views.history import DateLabel
-from utils.db_utils import fetch_from_db
+from utils.db_utils import fetch_from_db, initialize_db
 
 from PyQt5.QtWidgets import QApplication, QToolTip
 from PyQt5.QtTest import QTest
 from PyQt5.QtCore import QPoint
 
 import datetime
+from freezegun import freeze_time
 
 app = QApplication([])
 
+@freeze_time('2023-12-05 23:59:59')
+def test_save_elapsed_time_at_midnight(tmp_path):
+    file = tmp_path / "timer_data.db"
+    window = TimerApp(config={"database": file})
 
-def test_save_elapsed_time_at_midnight(mocker):
-    window = TimerApp()
-
-    # Mock the current time to a second before midnight
-    mocker.patch("datetime.datetime")
-    datetime.datetime.now.return_value = datetime.datetime(2023, 10, 24, 23, 59, 59)
-
+    assert datetime.datetime.now().date() == datetime.date(2023, 12, 5)
+    
     # Set a timer duration for testing purposes
     elapsed_seconds = 3600  # 1 hour
-    hours, remainder = divmod(elapsed_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    window.timer_view.timer_label.setText(
-        "{:02}:{:02}:{:02}".format(int(hours), int(minutes), int(seconds))
-    )
+    window.timer_view.elapsed_seconds = elapsed_seconds
 
     # Trigger the function that should save the time at midnight
     window.timer_view.perform_daily_reset()
 
     # Fetch data for today
-    today = datetime.date.today().strftime("%Y-%m-%d")
-    saved_time = fetch_from_db(today)
+    today = datetime.datetime.now().date()   #.strftime("%Y-%m-%d")
+    saved_time = fetch_from_db(today, database=file)
 
-    assert saved_time[0] == "01:00:00"
+    assert saved_time == elapsed_seconds
 
     window.close()
 

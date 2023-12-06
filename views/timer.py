@@ -8,19 +8,28 @@ from PyQt5.QtCore import QTimer, Qt, pyqtSlot
 from PyQt5.QtGui import QFont
 
 from components.buttons import PlayPauseButton
-from utils.db_utils import save_to_db
+from utils.db_utils import save_to_db, fetch_last_session, fetch_from_db
 from utils.app_settings import load_settings
-from config import TIMER_STATE
+from config import LOG_DIR
 
 import time
 import datetime
+import freezegun
 import threading
 import json
+import logging
+
+from typing import Optional
+
+
+logger = logging.getLogger(__name__)
 
 
 class TimerView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        
+        self.database = self.parent().config["database"]
         
         layout = QVBoxLayout(self)
         
@@ -31,7 +40,6 @@ class TimerView(QWidget):
         
         # Initialize settings
         self.app_settings = load_settings()
-        self.timer_state_file = TIMER_STATE
         
         # Apply font settings to timer label
         self.apply_settings()  
@@ -51,8 +59,7 @@ class TimerView(QWidget):
         self.elapsed_seconds = 0
 
         # Load timer state from file
-        self.load_timer_state()
-        self.update_timer_display(force_update=True)
+        self.load_last_session()
 
         # Start the daily reset checker
         self.daily_reset_thread = threading.Thread(target=self.check_daily_reset)
@@ -61,11 +68,9 @@ class TimerView(QWidget):
         )
         self.daily_reset_thread.start()
 
-        days_passed = (datetime.date.today() - self.last_used_date).days
+        days_passed = (datetime.date.today() - self.last_used_datetime.date()).days
         if days_passed >= 1:
-            self.save_to_db(
-                date=self.last_used_date
-            )  # Save elapsed time to the last day the app was used
+            self.save_session_to_db()  # Save elapsed time to the last day the app was used
             self.reset_timer()  # Reset the timer
         
     def apply_settings(self):
@@ -73,28 +78,48 @@ class TimerView(QWidget):
         font_size = int(self.app_settings.font_size)
         font = QFont(font_name, font_size)
         self.timer_label.setFont(font)
+        logging.info(f'Font applied: {font_name}, {font_size}')
+        
+    def load_last_session(self):
+        last_session = fetch_last_session(self.database)
+        if last_session:
+            logging.info(f'Last session found: {last_session}')
+            self.last_used_datetime, _ = last_session
+            self.elapsed_seconds = fetch_from_db(date=self.last_used_datetime.date(), database=self.database)
+            logging.info(f'Last session loaded: {self.last_used_datetime}, {self.elapsed_seconds}')
+        else:
+            self.last_used_datetime = datetime.datetime.now()
+            self.elapsed_seconds = 0
+            logging.info(f'Last session not found, new session created: {self.last_used_datetime}, {self.elapsed_seconds}')
+        
+        self.update_timer_display(force_update=True)
     
     @pyqtSlot()
     def toggle_timer(self):
-        self.elapsed_seconds = sum(
-            int(x) * 60**i
-            for i, x in enumerate(reversed(self.timer_label.text().split(":")))
-        )  # Convert displayed time to seconds
         if not self.running:
             # Starting the timer
-            self.start_time = time.time()
+            if self.start_time is None:
+                self.start_time = time.time() - self.elapsed_seconds
             self.running = True
             self.play_pause_button.toggle_icon(isRunning=True)
-            self.timer_instance.start(1000)  # Trigger every 1 second
+            self.timer_instance.start(1000)
         else:
-            # Pausing the timer
+            # Stopping the timer, we calculate the total elapsed time
+            self.elapsed_seconds = int(time.time() - self.start_time)
+            self.start_time = None  # Reset start_time
             self.running = False
             self.play_pause_button.toggle_icon(isRunning=False)
             self.timer_instance.stop()
+            self.update_timer_display(force_update=True)
+            self.save_session_to_db(
+                datetime_value=datetime.datetime.now() - datetime.timedelta(seconds=self.elapsed_seconds), 
+                duration_sec=self.elapsed_seconds, 
+            )
 
     def update_timer_display(self, force_update=False):
         if self.running:
-            elapsed_time = time.time() - self.start_time + self.elapsed_seconds
+            elapsed_time = time.time() - self.start_time # + self.elapsed_seconds
+            # elapsed_time = self.elapsed_seconds
         elif force_update:
             elapsed_time = self.elapsed_seconds
         else:
@@ -109,11 +134,20 @@ class TimerView(QWidget):
         self.timer_label.setText("00:00:00")
         self.elapsed_seconds = 0
 
+    def save_session_to_db(self, datetime_value:Optional[datetime.datetime]=None, duration_sec:Optional[int]=None):
+        if not datetime_value:
+            datetime_value = self.last_used_datetime
+        if not duration_sec:
+            duration_sec = self.elapsed_seconds
+        save_to_db(datetime_value, duration_sec, self.database)
+        logging.info(f'Session saved: {datetime_value}, {duration_sec}')
+        
     def perform_daily_reset(self):
         """Perform the daily save and reset operations."""
-        self.save_to_db()
+        self.save_session_to_db()
         self.reset_timer()
         self.check_daily_reset()  # Check again at midnight
+        logging.info(f'Daily reset performed. Previous session saved: {self.last_used_datetime}, {self.elapsed_seconds}')
 
     def check_daily_reset(self):
         now = datetime.datetime.now()
@@ -124,37 +158,8 @@ class TimerView(QWidget):
 
         # Set a timer to call the reset function at midnight
         threading.Timer(seconds_to_midnight, self.perform_daily_reset).start()
-
-    def save_to_db(self, date=None):
-        elapsed_time = self.timer_label.text()
-        if not date:
-            date = datetime.date.today().strftime("%Y-%m-%d")
-        save_to_db(date, elapsed_time)
-
-    def save_timer_state(self):
-        data = {
-            "running": self.running,
-            "elapsed_seconds": self.elapsed_seconds if not self.running else 0,
-            "last_used_date": datetime.date.today().strftime("%Y-%m-%d"),
-        }
-        with open(self.timer_state_file, "w") as file:
-            json.dump(data, file)
-
-    def load_timer_state(self):
-        try:
-            with open(self.timer_state_file, "r") as file:
-                data = json.load(file)
-                self.running = data.get("running", False)
-                self.elapsed_seconds = data.get("elapsed_seconds", 0)
-                # print(data.get('last_used_date', '1900-01-01'))
-                self.last_used_date = datetime.datetime.strptime(
-                    data.get("last_used_date", "1900-01-01"), "%Y-%m-%d"
-                ).date()
-        except FileNotFoundError:
-            self.last_used_date = datetime.date.today()
             
     def on_exit_app(self):
         if self.running:
             self.toggle_timer()  # Pause the timer
-        self.save_timer_state()
         

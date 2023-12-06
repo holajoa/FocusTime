@@ -9,17 +9,18 @@ from components.buttons import BackButton
 
 def calculate_color(elapsed_time_str, min_val=0, max_val=10, repr=True):
     """Calculate the color based on the elapsed time string."""
-    if elapsed_time_str == "No data":
+    if elapsed_time_str == "00:00:00":
         if repr:
             return "rgb(255, 255, 255)"
         return QColor(255, 255, 255, 0)
-    value = min(23, int(elapsed_time_str[0][:2]) + 1)
+    value = min(23, int(elapsed_time_str[:2]) + 1)
     value = max(min(value, max_val), min_val)
     normalized_value = (value - min_val) / (max_val - min_val)
     green_intensity = int(normalized_value * 255)
     r, g, b = green_intensity, 255 - int(green_intensity * 3 / 4), green_intensity
     if repr:
         return f"rgb({r}, {g}, {b})"
+    print(r, g, b, int(255 * 0.8))
     return QColor(r, g, b, int(255 * 0.8))
 
 
@@ -31,11 +32,11 @@ class DateLabel(QLabel):
         self.setObjectName(f"DateLabel({self.date})")
         self.setAlignment(Qt.AlignCenter)
 
-        elapsed_time = fetch_from_db(self.date)
-        if elapsed_time:
-            self.elapsed_time_str = elapsed_time[0]
-        else:
-            self.elapsed_time_str = "No data"
+        total_seconds = fetch_from_db(self.date)
+        # Convert total seconds to hours, minutes, and seconds
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        self.elapsed_time_str = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
         self.color = calculate_color(self.elapsed_time_str, repr=False)
 
     def paintEvent(self, event):
