@@ -52,14 +52,14 @@ class SettingsView(QWidget):
 
     def apply_and_callback(self):
         self.parent.app_settings = AppSettings(
-            font_name=self.font_dropdown.currentText(), 
-            font_size=self.font_size_scale.value()
+            font_name=self.font_dropdown.currentText(),
+            font_size=self.font_size_scale.value(),
         )
         self.parent.apply_settings()
 
     def save_as_default(self):
         self.parent.app_settings = AppSettings(
-            font_name=self.font_dropdown.currentText(), 
-            font_size=self.font_size_scale.value()
+            font_name=self.font_dropdown.currentText(),
+            font_size=self.font_size_scale.value(),
         )
         save_settings(self.parent.app_settings)

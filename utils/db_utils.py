@@ -2,18 +2,22 @@ import sqlite3
 import datetime
 from config import TIME_DATABASE
 from typing import Optional, Tuple
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
 
-def initialize_db(database:Optional[str]=TIME_DATABASE):
+
+def initialize_db(database: Optional[str] = TIME_DATABASE):
     """Create the database if it doesn't exist"""
     import os
+
     if not database == TIME_DATABASE:
-        logging.warning(f'Not using default database: {TIME_DATABASE}, initializing {database} instead. Ignore if testing.')
+        logging.warning(
+            f"Not using default database: {TIME_DATABASE}, initializing {database} instead. Ignore if testing."
+        )
     if not os.path.exists(database):
         open(database, "w").close()
-        
+
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute(
@@ -26,10 +30,16 @@ def initialize_db(database:Optional[str]=TIME_DATABASE):
     conn.close()
 
 
-def save_to_db(datetime_value:datetime.datetime, duration_sec:int, database:Optional[str]=TIME_DATABASE):
+def save_to_db(
+    datetime_value: datetime.datetime,
+    duration_sec: int,
+    database: Optional[str] = TIME_DATABASE,
+):
     """Save the elapsed time to the database."""
     if not database == TIME_DATABASE:
-        logging.warning(f'Not using default database: {TIME_DATABASE}, saving to {database} instead. Ignore if testing.')
+        logging.warning(
+            f"Not using default database: {TIME_DATABASE}, saving to {database} instead. Ignore if testing."
+        )
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     cursor.execute(
@@ -40,27 +50,35 @@ def save_to_db(datetime_value:datetime.datetime, duration_sec:int, database:Opti
     conn.close()
 
 
-def fetch_from_db(date:datetime.date, database:Optional[str]=TIME_DATABASE) -> int:
+def fetch_from_db(date: datetime.date, database: Optional[str] = TIME_DATABASE) -> int:
     """Fetch the elapsed time for a given date from the database."""
     if not database == TIME_DATABASE:
-        logging.warning(f'Not using default database: {TIME_DATABASE}, loading from {database} instead. Ignore if testing.')
+        logging.warning(
+            f"Not using default database: {TIME_DATABASE}, loading from {database} instead. Ignore if testing."
+        )
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
     query = "SELECT SUM(DurationSec) FROM daily_times WHERE DATE(datetime) = ?"
-    
+
     cursor.execute(query, (date,))
     duration_sec = cursor.fetchone()[0]
     conn.close()
     return duration_sec if duration_sec is not None else 0
 
 
-def fetch_last_session(database:Optional[str]=TIME_DATABASE) -> Optional[Tuple[datetime.datetime, int]]:
+def fetch_last_session(
+    database: Optional[str] = TIME_DATABASE,
+) -> Optional[Tuple[datetime.datetime, int]]:
     """Fetch the last used datetime and elapsed time from the database."""
     if not database == TIME_DATABASE:
-        logging.warning(f'Not using default database: {TIME_DATABASE}, loading from {database} instead. Ignore if testing.')
+        logging.warning(
+            f"Not using default database: {TIME_DATABASE}, loading from {database} instead. Ignore if testing."
+        )
     conn = sqlite3.connect(database)
     cursor = conn.cursor()
-    cursor.execute("SELECT datetime, DurationSec FROM daily_times ORDER BY datetime DESC LIMIT 1")
+    cursor.execute(
+        "SELECT datetime, DurationSec FROM daily_times ORDER BY datetime DESC LIMIT 1"
+    )
     row = cursor.fetchone()
     conn.close()
     if row:

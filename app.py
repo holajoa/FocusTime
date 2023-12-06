@@ -19,26 +19,28 @@ from utils.db_utils import initialize_db
 import logging
 
 
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    filename=LOG_DIR + 'app.log', 
-                    filemode='a+')
-        
-        
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename=LOG_DIR + "/app.log",
+    filemode="a+",
+)
+
+
 class TimerApp(QMainWindow):
     def __init__(self, config=CFG):
         super().__init__()
         self.config = config
         self.init_db(**config)
         self.initUI()
-        
+
     def init_db(self, **config):
         initialize_db(**config)
-        
+
     def initUI(self):
         # Basic window settings
         self.setWindowTitle("Daily Timer")
-        self.setGeometry(100, 100, 500, 300)
+        # self.setGeometry(100, 100, 500, 300)
         self.setMinimumHeight(200)
 
         # Menu bar setup
@@ -56,23 +58,23 @@ class TimerApp(QMainWindow):
         self.central_widget = QStackedWidget(self)
         self.setCentralWidget(self.central_widget)
 
-        # Timer View 
+        # Timer View
         self.timer_view = TimerView(self)
         self.central_widget.addWidget(self.timer_view)
-        
+
         # History and Settings View
         self.history_view = HistoryView(self)
         self.central_widget.addWidget(self.history_view)
 
         self.settings_view = SettingsView(self)
         self.central_widget.addWidget(self.settings_view)
-        
-        self.setAttribute(Qt.WA_DeleteOnClose)    
-    
+
+        self.setAttribute(Qt.WA_DeleteOnClose)
+
     @property
     def app_settings(self):
         return self.timer_view.app_settings
-    
+
     @property
     def running(self):
         return self.timer_view.running
@@ -80,10 +82,10 @@ class TimerApp(QMainWindow):
     @app_settings.setter
     def app_settings(self, value):
         self.timer_view.app_settings = value
-    
+
     def apply_settings(self):
         self.timer_view.apply_settings()
-    
+
     @pyqtSlot()
     def show_settings_view(self):
         self.central_widget.setCurrentWidget(self.settings_view)

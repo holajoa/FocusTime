@@ -14,13 +14,14 @@ from freezegun import freeze_time
 
 app = QApplication([])
 
-@freeze_time('2023-12-05 23:59:59')
+
+@freeze_time("2023-12-05 23:59:59")
 def test_save_elapsed_time_at_midnight(tmp_path):
     file = tmp_path / "timer_data.db"
     window = TimerApp(config={"database": file})
 
     assert datetime.datetime.now().date() == datetime.date(2023, 12, 5)
-    
+
     # Set a timer duration for testing purposes
     elapsed_seconds = 3600  # 1 hour
     window.timer_view.elapsed_seconds = elapsed_seconds
@@ -29,7 +30,7 @@ def test_save_elapsed_time_at_midnight(tmp_path):
     window.timer_view.perform_daily_reset()
 
     # Fetch data for today
-    today = datetime.datetime.now().date()   #.strftime("%Y-%m-%d")
+    today = datetime.datetime.now().date()  # .strftime("%Y-%m-%d")
     saved_time = fetch_from_db(today, database=file)
 
     assert saved_time == elapsed_seconds

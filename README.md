@@ -14,8 +14,10 @@ Designed for individuals who want a straightforward way to track their total wor
 ### Next Steps
 - [x] Refactor: Timer view separate from main `app.py`.
 - [x] Change database datetime format. 
+- [ ] Standardise stylesheet.
 - [ ] Create a config class for app, setting datebase etc
 - [ ] Fix settings view UI.
 - [ ] Fix history view colour display. 
 - [ ] Change app icon.
-  
+
+*App icon from https://www.flaticon.com/free-icons/stopwatch"*

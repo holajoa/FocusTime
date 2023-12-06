@@ -15,6 +15,7 @@ import json
 class MockCloseEvent(QCloseEvent):
     pass
 
+
 # Ensure that the app is created only once
 @pytest.fixture(scope="session")
 def app():
@@ -40,7 +41,7 @@ def test_save_and_load_timer_state_paused(app, tmp_path):
     # Use tmp_path to create a temporary file for saving timer state
     file = tmp_path / "timer_data.db"
     window = TimerApp(config={"database": file})
-    
+
     window.timer_view.running = False
     window.timer_view.elapsed_seconds = 1500  # assume 25 minutes have passed
 

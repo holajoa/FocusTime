@@ -20,7 +20,6 @@ def calculate_color(elapsed_time_str, min_val=0, max_val=10, repr=True):
     r, g, b = green_intensity, 255 - int(green_intensity * 3 / 4), green_intensity
     if repr:
         return f"rgb({r}, {g}, {b})"
-    print(r, g, b, int(255 * 0.8))
     return QColor(r, g, b, int(255 * 0.8))
 
 
@@ -59,8 +58,6 @@ class DateLabel(QLabel):
         painter.setFont(font)
         painter.setPen(Qt.black)  # Set text color
         font_metrics = painter.fontMetrics()
-        text_width = font_metrics.width(self.text())
-        text_height = font_metrics.height()
         painter.drawText(8, 16, self.text())
 
         painter.end()
@@ -80,23 +77,22 @@ class HistoryView(QWidget):
 
         self.parent = parent
         layout = QGridLayout(self)
-        self.setMinimumHeight(400)
 
         # Dropdown for selecting month
         self.month_selector = QComboBox(self)
         months = [
-            "January",
-            "February",
-            "March",
-            "April",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
             "May",
-            "June",
-            "July",
-            "August",
-            "September",
-            "October",
-            "November",
-            "December",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
         ]
         self.month_selector.addItems(months)
         current_month = datetime.datetime.now().month
@@ -104,7 +100,7 @@ class HistoryView(QWidget):
             current_month - 1
         )  # -1 because list index starts at 0
         self.month_selector.currentIndexChanged.connect(self.update_calendar_view)
-        layout.addWidget(self.month_selector, 0, 1)
+        layout.addWidget(self.month_selector, 0, 6)
 
         current_year = datetime.datetime.now().year
         self.draw_history(current_year, current_month, layout)
@@ -132,7 +128,7 @@ class HistoryView(QWidget):
                     day_label = DateLabel(str(day), self, date_str)
 
                     # Equal space for dates
-                    day_label.setFixedSize(50, 50)
+                    day_label.setFixedSize(40, 40)
 
                     layout.addWidget(day_label, week_index + 1, day_index)
 
