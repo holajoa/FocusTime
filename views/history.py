@@ -128,7 +128,7 @@ class HistoryView(QWidget):
                     day_label = DateLabel(str(day), self, date_str)
 
                     # Equal space for dates
-                    day_label.setFixedSize(40, 40)
+                    day_label.setFixedSize(45, 35)
 
                     layout.addWidget(day_label, week_index + 1, day_index)
 

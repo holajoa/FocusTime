@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtGui import QIcon
 
 from views.history import HistoryView
 from views.settings import SettingsView
@@ -39,9 +40,10 @@ class TimerApp(QMainWindow):
 
     def initUI(self):
         # Basic window settings
-        self.setWindowTitle("Daily Timer")
+        self.setWindowTitle("FocusTime")
         # self.setGeometry(100, 100, 500, 300)
         self.setMinimumHeight(200)
+        self.setWindowIcon(QIcon("static/timer-clock.png"))
 
         # Menu bar setup
         menubar = self.menuBar()
@@ -125,6 +127,7 @@ class TimerApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
     app.setStyleSheet(STYLESHEET)
     window = TimerApp()
     window.show()

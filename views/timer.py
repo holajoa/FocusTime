@@ -13,9 +13,7 @@ from config import LOG_DIR
 
 import time
 import datetime
-import freezegun
 import threading
-import json
 import logging
 
 from typing import Optional
