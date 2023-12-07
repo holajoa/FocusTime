@@ -6,7 +6,7 @@ from cx_Freeze import setup, Executable
 build_options = {
     "packages": [],
     "excludes": [],
-    "include_files": ["static", "resources", "log"],
+    "include_files": ["static", "resources"],
 }
 
 import sys

@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -20,22 +23,30 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install cx-Freeze  # Install cx_Freeze
-        pip install -r requirements.txt  # Install dependencies
+        pip install --upgrade --pre --extra-index-url https://marcelotduarte.github.io/packages/ cx_Freeze
+        pip install -r requirements.txt  
 
     - name: Build EXE
       run: python setup.py build_exe  # Run the build command for exe
 
-    - name: Upload EXE as Artifact
+    - name: Zip the build
+      run: |
+        Compress-Archive -Path build/* -DestinationPath FocusTime.zip
+
+    - name: Upload ZIP as Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: FocusTime-EXE
-        path: build/exe.win-amd64-3.12/FocusTime.exe  
+        name: FocusTime-Zip
+        path: FocusTime.zip
 
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
-        files: build/exe.win-amd64-3.12/FocusTime.exe  
+        files: FocusTime.zip
+        draft: false
+        prerelease: false
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -9,15 +9,7 @@ Designed for individuals who want a straightforward way to track their total wor
 - pomodoro timer sounds that disrupt focus.
 
 ## Installation
-Download the installer [here](https://drive.google.com/file/d/1P2U3dRI39yIAtyyw_ozG_CI5taRO9Iyl/view?usp=drive_link).
-
-Alternatively, clone the repository and build msi. 
-```
-git clone https://github.com/holajoa/FocusTime.git
-cd FocusTime
-python ./setup.py bdist_msi
-```
-Then run the installer. 
+Download [here](https://github.com/holajoa/FocusTime/releases/tag/v1.0.0).
 
 ## Features
 - **Time Recording**: Start, pause and resume work timer at any time. Cumulatively tracking work hours throughout the day. Automatic daily resets. 

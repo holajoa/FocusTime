@@ -17,16 +17,19 @@ from style.mainwindow import STYLESHEET
 from config import LOG_DIR, CFG
 
 from utils.db_utils import initialize_db
+
 import logging
+import os
 
-
+if not os.path.exists("logs"):
+    os.mkdir("logs")
+    
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     filename=LOG_DIR,
     filemode="a+",
 )
-
 
 class TimerApp(QMainWindow):
     def __init__(self, config=CFG):
