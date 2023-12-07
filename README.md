@@ -25,13 +25,8 @@ Then run the installer.
 - **Font and Size Adjustments**
 
 ### Next Steps
-- [x] Refactor: Timer view separate from main `app.py`.
-- [x] Change database datetime format. 
-- [x] Create a config class for app, setting datebase etc
-- [x] Change app icon.
-- [ ] Change from msi to release. 
+- [x] Fix history view colour display. 
 - [ ] Standardise stylesheet.
 - [ ] Fix settings view UI.
-- [ ] Fix history view colour display. 
 
 *App icon from https://www.flaticon.com/free-icons/stopwatch"*
