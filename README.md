@@ -29,6 +29,7 @@ Then run the installer.
 - [x] Change database datetime format. 
 - [x] Create a config class for app, setting datebase etc
 - [x] Change app icon.
+- [ ] Fix logic for overnight sessions. 
 - [ ] Standardise stylesheet.
 - [ ] Fix settings view UI.
 - [ ] Fix history view colour display. 
