@@ -1,0 +1,41 @@
+name: Build and Release EXE
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'  
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install cx-Freeze  # Install cx_Freeze
+        pip install -r requirements.txt  # Install dependencies
+
+    - name: Build EXE
+      run: python setup.py build_exe  # Run the build command for exe
+
+    - name: Upload EXE as Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: FocusTime-EXE
+        path: build/exe.win-amd64-3.12/FocusTime.exe  
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: build/exe.win-amd64-3.12/FocusTime.exe  
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 WORKING_DIR = "."
 
-LOG_DIR = WORKING_DIR + "/log"
+LOG_DIR = WORKING_DIR + "/log" + "/app.log"
 RESOURCES = WORKING_DIR + "/resources"
 
 DATABASE_DIR = RESOURCES + "/database"

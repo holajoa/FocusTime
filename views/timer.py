@@ -30,8 +30,7 @@ class TimerView(QWidget):
 
         layout = QVBoxLayout(self)
 
-        self.timer_string = "00:00:00"
-        self.timer_label = QLabel(self.timer_string, self)
+        self.timer_label = QLabel("00:00:00", self)
         self.timer_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.timer_label)
 
@@ -53,9 +52,10 @@ class TimerView(QWidget):
         self.setLayout(layout)
 
         # Initialize
-        self.running = False
-        self.start_time = None
-        self.elapsed_seconds = 0
+        self.running = False                # Timer running state
+        self.start_time = None              # Time when the timer was started
+        self.elapsed_seconds = 0            # Total elapsed time
+        self.session_start_time = None      # Time when the current session was started
 
         # Load timer state from file
         self.load_last_session()
@@ -66,6 +66,7 @@ class TimerView(QWidget):
             True  # Allow the app to exit even if thread is running
         )
         self.daily_reset_thread.start()
+        # self.check_daily_reset()
 
         days_passed = (datetime.date.today() - self.last_used_datetime.date()).days
         if days_passed >= 1:
@@ -106,12 +107,15 @@ class TimerView(QWidget):
             if self.start_time is None:
                 self.start_time = time.time() - self.elapsed_seconds
             self.running = True
+            self.session_start_time = datetime.datetime.now()
             self.play_pause_button.toggle_icon(isRunning=True)
             self.timer_instance.start(1000)
         else:
             # Stopping the timer, we calculate the total elapsed time
             self.elapsed_seconds = int(time.time() - self.start_time)
+            session_elapsed_seconds = (datetime.datetime.now() - self.session_start_time).seconds
             self.start_time = None  # Reset start_time
+            self.session_start_time = None
             self.running = False
             self.play_pause_button.toggle_icon(isRunning=False)
             self.timer_instance.stop()
@@ -119,13 +123,12 @@ class TimerView(QWidget):
             self.save_session_to_db(
                 datetime_value=datetime.datetime.now()
                 - datetime.timedelta(seconds=self.elapsed_seconds),
-                duration_sec=self.elapsed_seconds,
+                duration_sec=session_elapsed_seconds,
             )
 
     def update_timer_display(self, force_update=False):
         if self.running:
-            elapsed_time = time.time() - self.start_time  # + self.elapsed_seconds
-            # elapsed_time = self.elapsed_seconds
+            elapsed_time = time.time() - self.start_time
         elif force_update:
             elapsed_time = self.elapsed_seconds
         else:
@@ -156,7 +159,7 @@ class TimerView(QWidget):
         """Perform the daily save and reset operations."""
         self.save_session_to_db()
         self.reset_timer()
-        self.check_daily_reset()  # Check again at midnight
+        self.check_daily_reset()
         logging.info(
             f"Daily reset performed. Previous session saved: {self.last_used_datetime}, {self.elapsed_seconds}"
         )
@@ -167,6 +170,7 @@ class TimerView(QWidget):
         midnight = now.replace(hour=0, minute=0, second=0) + datetime.timedelta(days=1)
         delta_t = midnight - now
         seconds_to_midnight = delta_t.total_seconds()
+        logging.info(f"{seconds_to_midnight} before midnight reset")
 
         # Set a timer to call the reset function at midnight
         threading.Timer(seconds_to_midnight, self.perform_daily_reset).start()

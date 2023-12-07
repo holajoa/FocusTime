@@ -6,21 +6,23 @@ from PyQt5.QtCore import Qt
 from utils.db_utils import fetch_from_db
 from components.buttons import BackButton
 
+import logging
 
-def calculate_color(elapsed_time_str, min_val=0, max_val=10, repr=True):
+def calculate_color(elapsed_time_str, min_val=0, max_val=8, repr=True):
     """Calculate the color based on the elapsed time string."""
     if elapsed_time_str == "00:00:00":
         if repr:
             return "rgb(255, 255, 255)"
         return QColor(255, 255, 255, 0)
-    value = min(23, int(elapsed_time_str[:2]) + 1)
+    value = min(23, int(elapsed_time_str[:2]) + .5)
     value = max(min(value, max_val), min_val)
     normalized_value = (value - min_val) / (max_val - min_val)
     green_intensity = int(normalized_value * 255)
-    r, g, b = green_intensity, 255 - int(green_intensity * 3 / 4), green_intensity
+    r, g, b = 0, 255 - green_intensity, 0  # Keep red and blue at 0 for green shades
     if repr:
         return f"rgb({r}, {g}, {b})"
-    return QColor(r, g, b, int(255 * 0.8))
+    logging.info(f"rgb({r}, {g}, {b}, {int(255 * 0.7)})")
+    return QColor(r, g, b, int(255 * 0.7))
 
 
 class DateLabel(QLabel):
@@ -45,9 +47,7 @@ class DateLabel(QLabel):
         # Draw the circle
         painter.setPen(Qt.NoPen)
         painter.setBrush(self.color)
-        r = (
-            min(self.width(), self.height()) // 8
-        )  # radius; adjust the division factor to change circle size
+        r = min(self.width(), self.height()) // 6  
         center_x = self.width() // 2
         center_y = self.height() // 2
         painter.drawEllipse(center_x, center_y, 2 * r, 2 * r)
@@ -80,20 +80,8 @@ class HistoryView(QWidget):
 
         # Dropdown for selecting month
         self.month_selector = QComboBox(self)
-        months = [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-        ]
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         self.month_selector.addItems(months)
         current_month = datetime.datetime.now().month
         self.month_selector.setCurrentIndex(
@@ -132,7 +120,9 @@ class HistoryView(QWidget):
 
                     layout.addWidget(day_label, week_index + 1, day_index)
 
-    def update_calendar_view(self, month_index):
+    def update_calendar_view(self, month_index=None):
+        if month_index is None:
+            month_index = self.month_selector.currentIndex()
         year = datetime.datetime.now().year
         self.draw_history(
             year, month_index + 1, self.layout()

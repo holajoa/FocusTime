@@ -23,7 +23,7 @@ import logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename=LOG_DIR + "/app.log",
+    filename=LOG_DIR,
     filemode="a+",
 )
 
@@ -95,6 +95,7 @@ class TimerApp(QMainWindow):
 
     @pyqtSlot()
     def show_history_view(self):
+        self.history_view.update_calendar_view()
         self.central_widget.setCurrentWidget(self.history_view)
         self.adjustSize()
 

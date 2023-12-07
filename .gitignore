@@ -1,7 +1,7 @@
 ## Saved setting, database, app state, etc
-# /resources/database/*
-# /resources/font_settings.json
-# /log/*
+/resources/database/*
+/resources/font_settings.json
+/log/*
 
 # Byte-compiled / optimized / DLL files
 */__pycache__/*

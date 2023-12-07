@@ -11,12 +11,15 @@ from PyQt5.QtCore import QPoint
 
 import datetime
 from freezegun import freeze_time
+import time
 
 app = QApplication([])
 
 
-@freeze_time("2023-12-05 23:59:59")
-def test_save_elapsed_time_at_midnight(tmp_path):
+@pytest.mark.freeze_time
+def test_save_elapsed_time_at_midnight(tmp_path, freezer):
+    freezer.move_to("2023-12-05 23:59:59")
+
     file = tmp_path / "timer_data.db"
     window = TimerApp(config={"database": file})
 
@@ -34,6 +37,12 @@ def test_save_elapsed_time_at_midnight(tmp_path):
     saved_time = fetch_from_db(today, database=file)
 
     assert saved_time == elapsed_seconds
+
+    # Check that the timer was reset
+    freezer.move_to("2023-12-06 00:00:00")
+    next_day = datetime.datetime.now().date()
+    assert next_day > today, "New day not reached"
+    assert window.timer_view.elapsed_seconds == 0
 
     window.close()
 
