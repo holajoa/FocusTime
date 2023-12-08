@@ -40,6 +40,10 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
-        files: build/exe.win-amd64-3.12/FocusTime.exe  
+        files: FocusTime.zip
+        draft: false
+        prerelease: false
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
