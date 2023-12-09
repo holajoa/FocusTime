@@ -9,7 +9,7 @@ Designed for individuals who want a straightforward way to track their total wor
 - pomodoro timer sounds that disrupt focus.
 
 ## Installation
-Download [here](https://github.com/holajoa/FocusTime/releases/tag/v0.1.0).
+Download [here](https://github.com/holajoa/FocusTime/releases).
 
 ## Features
 - **Time Recording**: Start, pause and resume work timer at any time. Cumulatively tracking work hours throughout the day. Automatic daily resets. 
