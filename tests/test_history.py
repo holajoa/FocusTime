@@ -17,7 +17,7 @@ app = QApplication([])
 
 
 @pytest.mark.freeze_time
-def test_save_elapsed_time_at_midnight(tmp_path, freezer):
+def test_save_elapsed_time_at_midnight_paused(tmp_path, freezer):
     freezer.move_to("2023-12-05 23:59:59")
 
     file = tmp_path / "timer_data.db"
@@ -27,8 +27,10 @@ def test_save_elapsed_time_at_midnight(tmp_path, freezer):
 
     # Set a timer duration for testing purposes
     elapsed_seconds = 3600  # 1 hour
-    window.timer_view.elapsed_seconds = elapsed_seconds
-
+    window.timer_view.toggle_timer()
+    window.timer_view.session_start_time = datetime.datetime.now() - datetime.timedelta(seconds=elapsed_seconds)
+    window.timer_view.toggle_timer()
+    
     # Trigger the function that should save the time at midnight
     window.timer_view.perform_daily_reset()
 
@@ -36,16 +38,49 @@ def test_save_elapsed_time_at_midnight(tmp_path, freezer):
     today = datetime.datetime.now().date()  # .strftime("%Y-%m-%d")
     saved_time = fetch_from_db(today, database=file)
 
-    assert saved_time == elapsed_seconds
+    assert today == datetime.date(2023, 12, 5)
+    assert saved_time == elapsed_seconds, f"Saved time {saved_time}s does not match elapsed time (3600s)"
 
     # Check that the timer was reset
     freezer.move_to("2023-12-06 00:00:00")
     next_day = datetime.datetime.now().date()
     assert next_day > today, "New day not reached"
-    assert window.timer_view.elapsed_seconds == 0
+    assert window.timer_view.elapsed_seconds == 0, "Timer not reset"
 
     window.close()
 
+@pytest.mark.freeze_time
+def test_save_elapsed_time_at_midnight_running(tmp_path, freezer):
+    freezer.move_to("2023-12-05 23:59:59")
+
+    file = tmp_path / "timer_data.db"
+    window = TimerApp(config={"database": file})
+
+    assert datetime.datetime.now().date() == datetime.date(2023, 12, 5)
+
+    # Set a timer duration for testing purposes
+    elapsed_seconds = 3600  # 1 hour
+    window.timer_view.toggle_timer()
+    window.timer_view.session_start_time = datetime.datetime.now() - datetime.timedelta(seconds=elapsed_seconds)
+    
+    # Trigger the function that should save the time at midnight
+    window.timer_view.perform_daily_reset()
+
+    # Fetch data for today
+    today = datetime.datetime.now().date()  # .strftime("%Y-%m-%d")
+    saved_time = fetch_from_db(today, database=file)
+
+    assert today == datetime.date(2023, 12, 5)
+    assert saved_time == elapsed_seconds, f"Saved time {saved_time}s does not match elapsed time (3600s)"
+
+    # Check that the timer was reset
+    freezer.move_to("2023-12-06 00:00:00")
+    next_day = datetime.datetime.now().date()
+    assert next_day > today, "New day not reached"
+    assert window.timer_view.elapsed_seconds == 0, "Timer not reset"
+
+    window.timer_view.toggle_timer()
+    window.close()
 
 def test_history_view_and_calendar():
     window = TimerApp()

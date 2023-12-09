@@ -1,12 +1,15 @@
-WORKING_DIR = "."
+import os
+from userpaths import get_my_documents
 
-LOG_DIR = WORKING_DIR + "/logs" + "/app.log"
-RESOURCES = WORKING_DIR + "/resources"
+DOC_DIR = get_my_documents()
+APP_DATA_DIR = os.path.join(DOC_DIR, "FocusTime")
 
-DATABASE_DIR = RESOURCES + "/database"
-TIME_DATABASE = DATABASE_DIR + "/timer_data.db"
+LOG_DIR = os.path.join(APP_DATA_DIR, "app.log")
+RESOURCES = os.path.join(APP_DATA_DIR, "resources")
 
-FONT_SETTINGS_DIR = RESOURCES + "/font_settings.json"
+DATABASE_DIR = os.path.join(RESOURCES, "database")
+TIME_DATABASE = os.path.join(DATABASE_DIR, "timer_data.db")
+FONT_SETTINGS_DIR = os.path.join(RESOURCES, "font_settings.json")   
 
 TIMER_FONT_CHOICES = ["Roboto Mono", "Lucida Console", "Courier New", "Cascadia Mono"]
 

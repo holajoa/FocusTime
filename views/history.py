@@ -21,7 +21,7 @@ def calculate_color(elapsed_time_str, min_val=0, max_val=8, repr=True):
     r, g, b = 0, 255 - green_intensity, 0  # Keep red and blue at 0 for green shades
     if repr:
         return f"rgb({r}, {g}, {b})"
-    logging.info(f"rgb({r}, {g}, {b}, {int(255 * 0.7)})")
+    logging.debug(f"rgb({r}, {g}, {b}, {int(255 * 0.7)})")
     return QColor(r, g, b, int(255 * 0.7))
 
 

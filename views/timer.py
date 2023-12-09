@@ -56,6 +56,7 @@ class TimerView(QWidget):
         self.start_time = None              # Time when the timer was started
         self.elapsed_seconds = 0            # Total elapsed time
         self.session_start_time = None      # Time when the current session was started
+        self.session_elapsed_seconds = 0    # Elapsed time of the current session
 
         # Load timer state from file
         self.load_last_session()
@@ -101,8 +102,12 @@ class TimerView(QWidget):
         self.update_timer_display(force_update=True)
 
     @pyqtSlot()
-    def toggle_timer(self):
-        if not self.running:
+    def toggle_timer(self, on=None):
+        turn_on = on if on is not None else not self.running
+        
+        if turn_on:
+            if self.running:
+                return
             # Starting the timer
             if self.start_time is None:
                 self.start_time = time.time() - self.elapsed_seconds
@@ -111,9 +116,12 @@ class TimerView(QWidget):
             self.play_pause_button.toggle_icon(isRunning=True)
             self.timer_instance.start(1000)
         else:
+            if not self.running:
+                return
+            logger.debug(f"start_time: {self.start_time}, elapsed_seconds: {self.elapsed_seconds}")
             # Stopping the timer, we calculate the total elapsed time
             self.elapsed_seconds = int(time.time() - self.start_time)
-            session_elapsed_seconds = (datetime.datetime.now() - self.session_start_time).seconds
+            self.session_elapsed_seconds = (datetime.datetime.now() - self.session_start_time).seconds
             self.start_time = None  # Reset start_time
             self.session_start_time = None
             self.running = False
@@ -123,7 +131,7 @@ class TimerView(QWidget):
             self.save_session_to_db(
                 datetime_value=datetime.datetime.now()
                 - datetime.timedelta(seconds=self.elapsed_seconds),
-                duration_sec=session_elapsed_seconds,
+                duration_sec=self.session_elapsed_seconds,
             )
 
     def update_timer_display(self, force_update=False):
@@ -157,12 +165,15 @@ class TimerView(QWidget):
 
     def perform_daily_reset(self):
         """Perform the daily save and reset operations."""
-        self.save_session_to_db()
+        running_state = self.running        # Save the running state
+        self.toggle_timer(on=False)         # Pause the timer to save current session
         self.reset_timer()
         self.check_daily_reset()
         logging.info(
-            f"Daily reset performed. Previous session saved: {self.last_used_datetime}, {self.elapsed_seconds}"
+            f"Daily reset performed. Previous session saved: {self.last_used_datetime}, {self.session_elapsed_seconds}"
         )
+        if running_state:                        # If the timer was running, resume it       
+            self.toggle_timer(on=True)
 
     def check_daily_reset(self):
         now = datetime.datetime.now()

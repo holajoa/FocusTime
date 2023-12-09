@@ -14,31 +14,41 @@ from views.history import HistoryView
 from views.settings import SettingsView
 from views.timer import TimerView
 from style.mainwindow import STYLESHEET
-from config import LOG_DIR, CFG
+from config import APP_DATA_DIR, DATABASE_DIR, RESOURCES, LOG_DIR, CFG
 
 from utils.db_utils import initialize_db
-
 import logging
-import os
+from logging.handlers import RotatingFileHandler
 
-if not os.path.exists("logs"):
-    os.mkdir("logs")
-    
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename=LOG_DIR,
-    filemode="a+",
-)
+import os
 
 class TimerApp(QMainWindow):
     def __init__(self, config=CFG):
         super().__init__()
         self.config = config
-        self.init_db(**config)
+        self.init_logger()
+        self.init_data(**config)
         self.initUI()
+    
+    def init_logger(self):
+        log_handler = RotatingFileHandler(LOG_DIR, mode="a+", maxBytes=20, backupCount=0)
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(filename)s [%(process)d]: %(message)s',
+            '%b %d %H:%M:%S')
+        log_handler.setFormatter(formatter)
+        logger = logging.getLogger()
+        logger.addHandler(log_handler)
+        logger.setLevel(logging.DEBUG)
 
-    def init_db(self, **config):
+    def init_data(self, **config):
+        # Create the necessary directories
+        if not os.path.exists(APP_DATA_DIR):
+            os.mkdir(APP_DATA_DIR)
+        if not os.path.exists(RESOURCES):
+            os.mkdir(RESOURCES)
+        if not os.path.exists(DATABASE_DIR):
+            os.mkdir(DATABASE_DIR)
+        # Initialize the database
         initialize_db(**config)
 
     def initUI(self):
