@@ -67,12 +67,9 @@ class TimerView(QWidget):
             True  # Allow the app to exit even if thread is running
         )
         self.daily_reset_thread.start()
-        # self.check_daily_reset()
 
-        days_passed = (datetime.date.today() - self.last_used_datetime.date()).days
-        if days_passed >= 1:
-            self.save_session_to_db()  # Save elapsed time to the last day the app was used
-            self.reset_timer()  # Reset the timer
+        if self.last_used_datetime.date() < datetime.date.today():
+            self.reset_timer()
 
     def apply_settings(self):
         font_name = self.app_settings.font_name
@@ -130,7 +127,7 @@ class TimerView(QWidget):
             self.update_timer_display(force_update=True)
             self.save_session_to_db(
                 datetime_value=datetime.datetime.now()
-                - datetime.timedelta(seconds=self.elapsed_seconds),
+                - datetime.timedelta(seconds=self.session_elapsed_seconds),
                 duration_sec=self.session_elapsed_seconds,
             )
 
